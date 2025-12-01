@@ -24,11 +24,23 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    // Generate mock weather data
+    // Generate mock weather data with AQI and UV index
     const mockTemp = Math.floor(Math.random() * 15) + 15; // 15-30°C
     const conditions = ['Sunny', 'Partly Cloudy', 'Cloudy', 'Light Rain'];
     const condition = conditions[Math.floor(Math.random() * conditions.length)];
     const rainChance = condition === 'Light Rain' ? Math.floor(Math.random() * 50) + 30 : Math.floor(Math.random() * 30);
+    
+    // Generate AQI (Air Quality Index) - 0-500 scale
+    const aqi = Math.floor(Math.random() * 200) + 10; // 10-210
+    const aqiCategory = aqi <= 50 ? 'Good' : aqi <= 100 ? 'Moderate' : aqi <= 150 ? 'Unhealthy for Sensitive Groups' : aqi <= 200 ? 'Unhealthy' : 'Very Unhealthy';
+    
+    // Generate UV Index - 0-11+ scale
+    const uvIndex = Math.floor(Math.random() * 12); // 0-11
+    const uvCategory = uvIndex <= 2 ? 'Low' : uvIndex <= 5 ? 'Moderate' : uvIndex <= 7 ? 'High' : uvIndex <= 10 ? 'Very High' : 'Extreme';
+    
+    // Generate pollen count
+    const pollenLevel = Math.floor(Math.random() * 4); // 0-3
+    const pollenCategory = ['Low', 'Moderate', 'High', 'Very High'][pollenLevel];
     
     console.log('Generated mock weather for:', location);
 
@@ -40,6 +52,12 @@ serve(async (req) => {
       visibility: Math.floor(Math.random() * 5) + 5,
       pressure: Math.floor(Math.random() * 30) + 1000,
       rainChance: rainChance,
+      aqi: aqi,
+      aqiCategory: aqiCategory,
+      uvIndex: uvIndex,
+      uvCategory: uvCategory,
+      pollenLevel: pollenLevel,
+      pollenCategory: pollenCategory,
     };
 
     // Generate 5-day forecast
@@ -102,20 +120,82 @@ serve(async (req) => {
 
     console.log('Generated alerts:', alerts.length);
 
-    // Call Lovable AI for activity recommendations
-    const aiPrompt = `Based on the following weather conditions in ${location}:
+    // Generate health notifications based on conditions
+    const healthNotifications = [];
+    
+    // AQI-based notifications
+    if (aqi > 100) {
+      healthNotifications.push({
+        type: 'aqi',
+        severity: aqi > 150 ? 'alert' : 'warning',
+        title: 'Poor Air Quality Alert',
+        message: `AQI is ${aqi} (${aqiCategory}). ${aqi > 150 ? 'Avoid outdoor activities. Stay indoors with air filtration.' : 'Limit prolonged outdoor activities, especially for sensitive groups with asthma or respiratory conditions.'}`,
+        bestWindow: aqi < 150 ? 'Early morning (6-8 AM) typically has better air quality' : null
+      });
+    }
+    
+    // UV-based notifications
+    if (uvIndex >= 6) {
+      healthNotifications.push({
+        type: 'uv',
+        severity: uvIndex >= 8 ? 'alert' : 'warning',
+        title: `${uvCategory} UV Index`,
+        message: `UV Index is ${uvIndex}. Wear SPF 30+ sunscreen, sunglasses, and protective clothing. Seek shade during peak hours (10 AM - 4 PM).`,
+        bestWindow: 'Before 10 AM or after 4 PM for outdoor activities'
+      });
+    }
+    
+    // Pollen-based notifications
+    if (pollenLevel >= 2) {
+      healthNotifications.push({
+        type: 'pollen',
+        severity: pollenLevel >= 3 ? 'alert' : 'warning',
+        title: `${pollenCategory} Pollen Count`,
+        message: `Pollen levels are ${pollenCategory.toLowerCase()}. ${pollenLevel >= 3 ? 'Take allergy medication before going outside.' : 'Consider taking allergy medication if you have allergies.'}`,
+        bestWindow: 'Evening hours typically have lower pollen counts'
+      });
+    }
+    
+    // Optimal activity windows
+    const optimalWindows = [];
+    if (aqi <= 100 && uvIndex < 6 && weather.temperature >= 15 && weather.temperature <= 25) {
+      optimalWindows.push({
+        type: 'fitness',
+        title: 'Ideal Workout Window',
+        message: `Perfect conditions now: Low AQI (${aqi}), moderate UV (${uvIndex}), comfortable temp (${weather.temperature}°C). Great time for outdoor exercise!`,
+        timeWindow: 'Current conditions optimal for 2-3 hours'
+      });
+    }
+
+    // Call Lovable AI for activity recommendations with health context
+    const aiPrompt = `Based on the following comprehensive weather and health conditions in ${location}:
+
+Weather:
 - Temperature: ${weather.temperature}°C
 - Condition: ${weather.condition}
 - Humidity: ${weather.humidity}%
 - Wind Speed: ${weather.windSpeed} mph
+- Rain Chance: ${weather.rainChance}%
 
-Generate 6 creative and specific activity recommendations that are perfect for these weather conditions.
+Health Factors:
+- Air Quality Index (AQI): ${weather.aqi} (${weather.aqiCategory})
+- UV Index: ${weather.uvIndex} (${weather.uvCategory})
+- Pollen Level: ${weather.pollenCategory}
+
+Generate 6 creative and health-conscious activity recommendations that consider both weather and health factors.
+For activities, prioritize:
+- Indoor activities if AQI > 150 or UV Index > 8
+- Low-intensity activities if AQI > 100
+- Shade/indoor alternatives if UV Index > 6
+- Low-pollen exposure activities if pollen is High or Very High
+
 For each activity, provide:
 1. A catchy, specific title
-2. A detailed description (2-3 sentences) explaining why it's perfect for this weather
+2. A detailed description (2-3 sentences) explaining why it's perfect for these conditions AND safe for health
 3. A category (Indoor, Outdoor, Sports, Cultural, Food & Dining, or Entertainment)
+4. Health considerations if relevant
 
-Format your response as a JSON array with objects containing "title", "description", and "category" fields.`;
+Format your response as a JSON array with objects containing "title", "description", "category", and optional "healthNote" fields.`;
 
     console.log('Calling Lovable AI...');
     
@@ -184,7 +264,14 @@ Format your response as a JSON array with objects containing "title", "descripti
     console.log('Returning recommendations:', activities.length);
 
     return new Response(
-      JSON.stringify({ weather, activities, forecasts, alerts }),
+      JSON.stringify({ 
+        weather, 
+        activities, 
+        forecasts, 
+        alerts,
+        healthNotifications,
+        optimalWindows
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,

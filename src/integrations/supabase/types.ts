@@ -14,7 +14,95 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      health_notifications: {
+        Row: {
+          conditions: Json | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          notification_type: string
+          profile_id: string | null
+          severity: string | null
+          title: string
+        }
+        Insert: {
+          conditions?: Json | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          notification_type: string
+          profile_id?: string | null
+          severity?: string | null
+          title: string
+        }
+        Update: {
+          conditions?: Json | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          notification_type?: string
+          profile_id?: string | null
+          severity?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_notifications_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          allergies: string[] | null
+          asthma_severity: string | null
+          created_at: string | null
+          email: string | null
+          fitness_level: string | null
+          health_conditions: string[] | null
+          id: string
+          notification_preferences: Json | null
+          preferred_activities: string[] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          allergies?: string[] | null
+          asthma_severity?: string | null
+          created_at?: string | null
+          email?: string | null
+          fitness_level?: string | null
+          health_conditions?: string[] | null
+          id?: string
+          notification_preferences?: Json | null
+          preferred_activities?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          allergies?: string[] | null
+          asthma_severity?: string | null
+          created_at?: string | null
+          email?: string | null
+          fitness_level?: string | null
+          health_conditions?: string[] | null
+          id?: string
+          notification_preferences?: Json | null
+          preferred_activities?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
