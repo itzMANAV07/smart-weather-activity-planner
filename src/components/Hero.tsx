@@ -1,0 +1,59 @@
+import { MapPin } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import weatherBg from "@/assets/weather-hero-bg.jpg";
+
+interface HeroProps {
+  location: string;
+  onLocationChange: (location: string) => void;
+  onSearch: () => void;
+}
+
+export const Hero = ({ location, onLocationChange, onSearch }: HeroProps) => {
+  return (
+    <div className="relative min-h-[60vh] flex flex-col items-center justify-center px-4 py-16 overflow-hidden">
+      <div className="absolute inset-0">
+        <img 
+          src={weatherBg} 
+          alt="Weather background" 
+          className="w-full h-full object-cover animate-in fade-in duration-1000"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background/80 backdrop-blur-[2px]" />
+      </div>
+      
+      <div className="relative z-10 text-center max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <h1 className="text-5xl md:text-7xl font-bold text-foreground leading-tight">
+          Your AI Weather
+          <span className="block bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            Activity Planner
+          </span>
+        </h1>
+        
+        <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
+          Get personalized activity recommendations based on real-time weather conditions
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto mt-8">
+          <div className="relative flex-1">
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Enter your location..."
+              value={location}
+              onChange={(e) => onLocationChange(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && onSearch()}
+              className="pl-10 h-12 text-base bg-card/90 backdrop-blur-sm border-2 focus:border-primary transition-smooth shadow-soft"
+            />
+          </div>
+          <Button 
+            onClick={onSearch}
+            size="lg"
+            className="h-12 px-8 bg-primary hover:bg-primary/90 shadow-medium transition-smooth"
+          >
+            Get Recommendations
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
