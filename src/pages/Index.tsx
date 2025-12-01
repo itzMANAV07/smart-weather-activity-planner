@@ -8,6 +8,9 @@ import { ActivitySuggestions } from "@/components/ActivitySuggestions";
 import { ForecastCard } from "@/components/ForecastCard";
 import { WeatherAlerts } from "@/components/WeatherAlerts";
 import { WeatherMap } from "@/components/WeatherMap";
+import { HealthMetrics } from "@/components/HealthMetrics";
+import { HealthNotifications } from "@/components/HealthNotifications";
+import { ProfileSetup } from "@/components/ProfileSetup";
 
 // Import toast for showing pop-up messages to the user
 import { useToast } from "@/hooks/use-toast";
@@ -24,6 +27,12 @@ interface WeatherData {
   visibility: number;         // How far you can see
   pressure: number;           // Atmospheric pressure
   rainChance: number;         // Percentage chance of rain
+  aqi: number;                // Air Quality Index
+  aqiCategory: string;        // AQI category (Good, Moderate, etc.)
+  uvIndex: number;            // UV Index
+  uvCategory: string;         // UV category (Low, Moderate, etc.)
+  pollenLevel: number;        // Pollen level (0-3)
+  pollenCategory: string;     // Pollen category (Low, Moderate, etc.)
 }
 
 // Define what an activity recommendation looks like
@@ -52,6 +61,23 @@ interface WeatherAlert {
   description: string;        // Full details
 }
 
+// Define what health notifications look like
+interface HealthNotification {
+  type: string;
+  severity: string;
+  title: string;
+  message: string;
+  bestWindow?: string | null;
+}
+
+// Define what optimal windows look like
+interface OptimalWindow {
+  type: string;
+  title: string;
+  message: string;
+  timeWindow: string;
+}
+
 // This is the main page component
 const Index = () => {
   // Create variables to store our data (these can change)
@@ -60,6 +86,8 @@ const Index = () => {
   const [activities, setActivities] = useState<Activity[]>([]);       // List of activity suggestions
   const [forecasts, setForecasts] = useState<DailyForecast[]>([]);   // 5-day forecast
   const [alerts, setAlerts] = useState<WeatherAlert[]>([]);           // Weather warnings
+  const [healthNotifications, setHealthNotifications] = useState<HealthNotification[]>([]); // Health notifications
+  const [optimalWindows, setOptimalWindows] = useState<OptimalWindow[]>([]); // Optimal activity windows
   const [loading, setLoading] = useState(false);                      // Is data being loaded?
   const { toast } = useToast();                                       // For showing messages
 
@@ -82,6 +110,8 @@ const Index = () => {
     setActivities([]);
     setForecasts([]);
     setAlerts([]);
+    setHealthNotifications([]);
+    setOptimalWindows([]);
 
     try {
       // Call our backend to get weather data and activity suggestions
@@ -98,6 +128,8 @@ const Index = () => {
       setActivities(data.activities);        // Activity suggestions
       setForecasts(data.forecasts || []);    // 5-day forecast
       setAlerts(data.alerts || []);          // Any weather warnings
+      setHealthNotifications(data.healthNotifications || []); // Health notifications
+      setOptimalWindows(data.optimalWindows || []); // Optimal activity windows
 
       // Show success message
       toast({
@@ -130,8 +162,19 @@ const Index = () => {
       
       {/* Main content area */}
       <div className="container mx-auto px-4 py-12 space-y-12">
+        {/* Profile Setup */}
+        <ProfileSetup />
+        
         {/* Show weather alerts if there are any */}
         {alerts.length > 0 && <WeatherAlerts alerts={alerts} />}
+        
+        {/* Show health notifications and optimal windows */}
+        {(healthNotifications.length > 0 || optimalWindows.length > 0) && (
+          <HealthNotifications 
+            notifications={healthNotifications} 
+            optimalWindows={optimalWindows}
+          />
+        )}
         
         {/* Only show weather info if we have data */}
         {weather && (
@@ -142,6 +185,18 @@ const Index = () => {
               temperature={weather.temperature}
               condition={weather.condition}
             />
+            
+            {/* Health metrics - AQI, UV Index, Pollen */}
+            {weather.aqi !== undefined && (
+              <HealthMetrics 
+                aqi={weather.aqi}
+                aqiCategory={weather.aqiCategory}
+                uvIndex={weather.uvIndex}
+                uvCategory={weather.uvCategory}
+                pollenLevel={weather.pollenLevel}
+                pollenCategory={weather.pollenCategory}
+              />
+            )}
             
             {/* Two columns: weather details on left, activities on right */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
