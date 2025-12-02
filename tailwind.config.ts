@@ -59,19 +59,21 @@ export default {
         },
       },
       backgroundImage: {
-        'gradient-sky': 'var(--gradient-sky)',
-        'gradient-sunny': 'var(--gradient-sunny)',
+        'gradient-hero': 'var(--gradient-hero)',
         'gradient-card': 'var(--gradient-card)',
+        'gradient-accent': 'var(--gradient-accent)',
       },
       boxShadow: {
         'soft': 'var(--shadow-soft)',
         'medium': 'var(--shadow-medium)',
+        'glow': 'var(--shadow-glow)',
       },
       transitionProperty: {
         'smooth': 'var(--transition-smooth)',
       },
       fontFamily: {
-        sans: ['Outfit', 'system-ui', 'sans-serif'],
+        sans: ['Space Grotesk', 'system-ui', 'sans-serif'],
+        display: ['Syne', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
         lg: "var(--radius)",

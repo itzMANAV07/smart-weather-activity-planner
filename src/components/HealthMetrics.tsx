@@ -47,15 +47,17 @@ export const HealthMetrics = ({
   };
 
   return (
-    <Card className="p-6 bg-gradient-card backdrop-blur-sm border-2 shadow-medium animate-in fade-in slide-in-from-top-4 duration-700">
-      <h3 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
-        <TrendingUp className="h-6 w-6 text-primary" />
-        Health & Environment Metrics
+    <Card className="p-8 bg-gradient-card backdrop-blur-sm border-2 border-primary/20 shadow-glow animate-in fade-in slide-in-from-top-4 duration-700">
+      <h3 className="text-3xl font-display font-bold text-foreground mb-6 flex items-center gap-3">
+        <div className="p-2 rounded-xl bg-gradient-accent">
+          <TrendingUp className="h-6 w-6 text-white" />
+        </div>
+        Air Quality Index
       </h3>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* AQI Card */}
-        <div className="bg-background/50 rounded-lg p-4 border border-border/50">
+        <div className="bg-background/60 rounded-2xl p-6 border-2 border-primary/10 hover:border-primary/30 transition-smooth hover:shadow-medium">
           <div className="flex items-center gap-2 mb-2">
             <Wind className="h-5 w-5 text-muted-foreground" />
             <span className="text-sm font-medium text-muted-foreground">Air Quality</span>
@@ -80,7 +82,7 @@ export const HealthMetrics = ({
         </div>
 
         {/* UV Index Card */}
-        <div className="bg-background/50 rounded-lg p-4 border border-border/50">
+        <div className="bg-background/60 rounded-2xl p-6 border-2 border-primary/10 hover:border-primary/30 transition-smooth hover:shadow-medium">
           <div className="flex items-center gap-2 mb-2">
             <Sun className="h-5 w-5 text-muted-foreground" />
             <span className="text-sm font-medium text-muted-foreground">UV Index</span>
@@ -101,7 +103,7 @@ export const HealthMetrics = ({
         </div>
 
         {/* Pollen Card */}
-        <div className="bg-background/50 rounded-lg p-4 border border-border/50">
+        <div className="bg-background/60 rounded-2xl p-6 border-2 border-primary/10 hover:border-primary/30 transition-smooth hover:shadow-medium">
           <div className="flex items-center gap-2 mb-2">
             <Flower2 className="h-5 w-5 text-muted-foreground" />
             <span className="text-sm font-medium text-muted-foreground">Pollen Level</span>
