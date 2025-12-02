@@ -1,23 +1,19 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Wind, Sun, Flower2, TrendingUp, AlertCircle } from "lucide-react";
+import { Wind, Sun, TrendingUp, AlertCircle } from "lucide-react";
 
 interface HealthMetricsProps {
   aqi: number;
   aqiCategory: string;
   uvIndex: number;
   uvCategory: string;
-  pollenLevel: number;
-  pollenCategory: string;
 }
 
 export const HealthMetrics = ({ 
   aqi, 
   aqiCategory, 
   uvIndex, 
-  uvCategory,
-  pollenLevel,
-  pollenCategory 
+  uvCategory
 }: HealthMetricsProps) => {
   const getAQIColor = (category: string) => {
     switch (category) {
@@ -39,12 +35,6 @@ export const HealthMetrics = ({
     }
   };
 
-  const getPollenColor = (level: number) => {
-    if (level === 0) return 'bg-green-500/20 text-green-700 border-green-500/30';
-    if (level === 1) return 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30';
-    if (level === 2) return 'bg-orange-500/20 text-orange-700 border-orange-500/30';
-    return 'bg-red-500/20 text-red-700 border-red-500/30';
-  };
 
   return (
     <Card className="p-8 bg-gradient-card backdrop-blur-sm border-2 border-primary/20 shadow-glow animate-in fade-in slide-in-from-top-4 duration-700">
@@ -55,7 +45,7 @@ export const HealthMetrics = ({
         Air Quality Index
       </h3>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* AQI Card */}
         <div className="bg-background/60 rounded-2xl p-6 border-2 border-primary/10 hover:border-primary/30 transition-smooth hover:shadow-medium">
           <div className="flex items-center gap-2 mb-2">
@@ -102,30 +92,6 @@ export const HealthMetrics = ({
           )}
         </div>
 
-        {/* Pollen Card */}
-        <div className="bg-background/60 rounded-2xl p-6 border-2 border-primary/10 hover:border-primary/30 transition-smooth hover:shadow-medium">
-          <div className="flex items-center gap-2 mb-2">
-            <Flower2 className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm font-medium text-muted-foreground">Pollen Level</span>
-          </div>
-          <div className="flex items-baseline gap-2 mb-2">
-            <span className="text-3xl font-bold text-foreground">{pollenLevel}</span>
-            <span className="text-sm text-muted-foreground">of 3</span>
-          </div>
-          <Badge className={`${getPollenColor(pollenLevel)} border font-medium`}>
-            {pollenCategory}
-          </Badge>
-          {pollenLevel >= 2 && (
-            <div className="flex items-start gap-2 mt-3 text-xs text-muted-foreground">
-              <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-              <span>
-                {pollenLevel >= 3
-                  ? 'Take allergy medication before going outside'
-                  : 'Consider taking allergy medication'}
-              </span>
-            </div>
-          )}
-        </div>
       </div>
     </Card>
   );

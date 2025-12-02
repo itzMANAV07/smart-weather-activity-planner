@@ -29,8 +29,6 @@ interface WeatherData {
   aqiCategory: string;        // AQI category (Good, Moderate, etc.)
   uvIndex: number;            // UV Index
   uvCategory: string;         // UV category (Low, Moderate, etc.)
-  pollenLevel: number;        // Pollen level (0-3)
-  pollenCategory: string;     // Pollen category (Low, Moderate, etc.)
 }
 
 // Define what an activity recommendation looks like
@@ -157,8 +155,6 @@ const Index = () => {
                 aqiCategory={weather.aqiCategory}
                 uvIndex={weather.uvIndex}
                 uvCategory={weather.uvCategory}
-                pollenLevel={weather.pollenLevel}
-                pollenCategory={weather.pollenCategory}
               />
             )}
             
