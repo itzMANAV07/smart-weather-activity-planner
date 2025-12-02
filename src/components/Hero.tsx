@@ -22,15 +22,15 @@ export const Hero = ({ location, onLocationChange, onSearch }: HeroProps) => {
       </div>
       
       <div className="relative z-10 text-center max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <h1 className="text-5xl md:text-7xl font-bold text-foreground leading-tight">
-          Your AI Weather
-          <span className="block bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Activity Planner
+        <h1 className="text-6xl md:text-8xl font-display font-bold text-foreground leading-tight tracking-tight">
+          Weather
+          <span className="block bg-gradient-accent bg-clip-text text-transparent mt-2">
+            Intelligence
           </span>
         </h1>
         
-        <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-          Get personalized activity recommendations based on real-time weather conditions
+        <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto font-medium">
+          AI-powered activity planning with real-time air quality insights
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto mt-8">
@@ -48,7 +48,7 @@ export const Hero = ({ location, onLocationChange, onSearch }: HeroProps) => {
           <Button 
             onClick={onSearch}
             size="lg"
-            className="h-12 px-8 bg-primary hover:bg-primary/90 shadow-medium transition-smooth"
+            className="h-12 px-8 bg-gradient-accent hover:shadow-glow shadow-medium transition-smooth font-semibold"
           >
             Get Recommendations
           </Button>
