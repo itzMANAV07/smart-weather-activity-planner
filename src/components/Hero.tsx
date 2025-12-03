@@ -22,10 +22,10 @@ export const Hero = ({ location, onLocationChange, onSearch }: HeroProps) => {
       </div>
       
       <div className="relative z-10 text-center max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <h1 className="text-6xl md:text-8xl font-display font-bold text-foreground leading-tight tracking-tight">
-          Weather Activity
+        <h1 className="text-5xl md:text-7xl font-display font-bold text-foreground leading-tight tracking-tight">
+          Smart Weather
           <span className="block bg-gradient-accent bg-clip-text text-transparent mt-2">
-            Planner
+            Activity Planner
           </span>
         </h1>
         

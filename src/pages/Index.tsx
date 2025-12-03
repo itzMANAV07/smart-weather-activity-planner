@@ -1,14 +1,13 @@
 // Import React's useState to manage changing data (like location input, weather data)
 import { useState } from "react";
 
-// Import all the visual components we'll use on this page
 import { Hero } from "@/components/Hero";
 import { WeatherCard } from "@/components/WeatherCard";
 import { ActivitySuggestions } from "@/components/ActivitySuggestions";
 import { ForecastCard } from "@/components/ForecastCard";
 import { WeatherAlerts } from "@/components/WeatherAlerts";
-import { WeatherMap } from "@/components/WeatherMap";
 import { HealthMetrics } from "@/components/HealthMetrics";
+import { OutfitSuggestions } from "@/components/OutfitSuggestions";
 
 // Import toast for showing pop-up messages to the user
 import { useToast } from "@/hooks/use-toast";
@@ -138,17 +137,8 @@ const Index = () => {
         {/* Show weather alerts if there are any */}
         {alerts.length > 0 && <WeatherAlerts alerts={alerts} />}
         
-        {/* Only show weather info if we have data */}
         {weather && (
           <>
-            {/* Visual map showing location and weather */}
-            <WeatherMap 
-              location={location} 
-              temperature={weather.temperature}
-              condition={weather.condition}
-            />
-            
-            {/* Health metrics - AQI, UV Index, Pollen */}
             {weather.aqi !== undefined && (
               <HealthMetrics 
                 aqi={weather.aqi}
@@ -158,11 +148,16 @@ const Index = () => {
               />
             )}
             
-            {/* Two columns: weather details on left, activities on right */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <WeatherCard weather={weather} location={location} />
-              <ActivitySuggestions activities={activities} loading={loading} />
+              <OutfitSuggestions 
+                temperature={weather.temperature}
+                condition={weather.condition}
+                rainChance={weather.rainChance}
+              />
             </div>
+            
+            <ActivitySuggestions activities={activities} loading={loading} />
           </>
         )}
         
