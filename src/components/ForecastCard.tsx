@@ -70,9 +70,9 @@ export const ForecastCard = ({ forecasts }: ForecastCardProps) => {
             
             {/* Show umbrella badge if needed */}
             {forecast.needsUmbrella && (
-              <div className="flex items-center gap-1 mt-2 text-xs text-accent-foreground bg-accent/20 rounded px-2 py-1">
-                <Umbrella className="h-3 w-3" />
-                <span>Umbrella</span>
+              <div className="flex items-center gap-1.5 mt-3 text-sm font-semibold text-white bg-primary rounded-full px-3 py-1.5 shadow-md">
+                <Umbrella className="h-4 w-4" />
+                <span>Bring Umbrella</span>
               </div>
             )}
           </div>
