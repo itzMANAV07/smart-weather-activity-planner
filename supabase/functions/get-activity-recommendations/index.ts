@@ -5,6 +5,129 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Fetch real weather data from OpenWeatherMap
+async function fetchWeatherData(location: string) {
+  const OPENWEATHER_API_KEY = Deno.env.get('OPENWEATHER_API_KEY');
+  
+  if (!OPENWEATHER_API_KEY) {
+    console.log('OpenWeatherMap API key not found, using mock data');
+    return null;
+  }
+
+  try {
+    // First, geocode the location to get coordinates
+    const geoResponse = await fetch(
+      `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(location)}&limit=1&appid=${OPENWEATHER_API_KEY}`
+    );
+    
+    if (!geoResponse.ok) {
+      console.error('Geocoding error:', geoResponse.status);
+      return null;
+    }
+    
+    const geoData = await geoResponse.json();
+    if (!geoData || geoData.length === 0) {
+      console.log('Location not found:', location);
+      return null;
+    }
+    
+    const { lat, lon } = geoData[0];
+    console.log(`Geocoded ${location} to lat: ${lat}, lon: ${lon}`);
+    
+    // Fetch current weather
+    const weatherResponse = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric`
+    );
+    
+    if (!weatherResponse.ok) {
+      console.error('Weather API error:', weatherResponse.status);
+      return null;
+    }
+    
+    const weatherData = await weatherResponse.json();
+    
+    // Fetch 5-day forecast
+    const forecastResponse = await fetch(
+      `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric`
+    );
+    
+    if (!forecastResponse.ok) {
+      console.error('Forecast API error:', forecastResponse.status);
+      return null;
+    }
+    
+    const forecastData = await forecastResponse.json();
+    
+    // Fetch air quality data
+    const aqiResponse = await fetch(
+      `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}`
+    );
+    
+    let aqiData = null;
+    if (aqiResponse.ok) {
+      aqiData = await aqiResponse.json();
+    }
+    
+    // Fetch UV index from One Call API (if available)
+    const uvResponse = await fetch(
+      `https://api.openweathermap.org/data/2.5/uvi?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}`
+    );
+    
+    let uvData = null;
+    if (uvResponse.ok) {
+      uvData = await uvResponse.json();
+    }
+    
+    return { weatherData, forecastData, aqiData, uvData, lat, lon };
+  } catch (error) {
+    console.error('Error fetching weather data:', error);
+    return null;
+  }
+}
+
+// Convert OpenWeatherMap condition to simple condition string
+function getConditionFromWeather(weather: any): string {
+  const main = weather?.weather?.[0]?.main?.toLowerCase() || '';
+  const description = weather?.weather?.[0]?.description?.toLowerCase() || '';
+  
+  if (main.includes('rain') || description.includes('rain')) {
+    if (description.includes('light')) return 'Light Rain';
+    if (description.includes('heavy')) return 'Heavy Rain';
+    return 'Rain';
+  }
+  if (main.includes('snow')) return 'Snow';
+  if (main.includes('thunder') || main.includes('storm')) return 'Thunderstorm';
+  if (main.includes('cloud')) {
+    if (description.includes('few') || description.includes('scattered')) return 'Partly Cloudy';
+    return 'Cloudy';
+  }
+  if (main.includes('clear')) return 'Sunny';
+  if (main.includes('mist') || main.includes('fog') || main.includes('haze')) return 'Foggy';
+  return 'Partly Cloudy';
+}
+
+// Get AQI category from index (OpenWeatherMap uses 1-5 scale)
+function getAqiCategory(aqiIndex: number): { aqi: number; category: string } {
+  // Convert OpenWeatherMap 1-5 scale to US AQI approximate
+  const aqiMapping: { [key: number]: { aqi: number; category: string } } = {
+    1: { aqi: 25, category: 'Good' },
+    2: { aqi: 75, category: 'Moderate' },
+    3: { aqi: 125, category: 'Unhealthy for Sensitive Groups' },
+    4: { aqi: 175, category: 'Unhealthy' },
+    5: { aqi: 250, category: 'Very Unhealthy' },
+  };
+  return aqiMapping[aqiIndex] || { aqi: 50, category: 'Moderate' };
+}
+
+// Get UV category
+function getUvCategory(uvIndex: number): string {
+  if (uvIndex <= 2) return 'Low';
+  if (uvIndex <= 5) return 'Moderate';
+  if (uvIndex <= 7) return 'High';
+  if (uvIndex <= 10) return 'Very High';
+  return 'Extreme';
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -24,60 +147,135 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    // Generate mock weather data with AQI and UV index
-    const mockTemp = Math.floor(Math.random() * 15) + 15; // 15-30°C
-    const conditions = ['Sunny', 'Partly Cloudy', 'Cloudy', 'Light Rain'];
-    const condition = conditions[Math.floor(Math.random() * conditions.length)];
-    const rainChance = condition === 'Light Rain' ? Math.floor(Math.random() * 50) + 30 : Math.floor(Math.random() * 30);
+    // Try to fetch real weather data
+    const realWeatherData = await fetchWeatherData(location);
     
-    // Generate AQI (Air Quality Index) - 0-500 scale
-    const aqi = Math.floor(Math.random() * 200) + 10; // 10-210
-    const aqiCategory = aqi <= 50 ? 'Good' : aqi <= 100 ? 'Moderate' : aqi <= 150 ? 'Unhealthy for Sensitive Groups' : aqi <= 200 ? 'Unhealthy' : 'Very Unhealthy';
+    let weather;
+    let forecasts;
     
-    // Generate UV Index - 0-11+ scale
-    const uvIndex = Math.floor(Math.random() * 12); // 0-11
-    const uvCategory = uvIndex <= 2 ? 'Low' : uvIndex <= 5 ? 'Moderate' : uvIndex <= 7 ? 'High' : uvIndex <= 10 ? 'Very High' : 'Extreme';
-    
-    // Generate pollen count
-    const pollenLevel = Math.floor(Math.random() * 4); // 0-3
-    const pollenCategory = ['Low', 'Moderate', 'High', 'Very High'][pollenLevel];
-    
-    console.log('Generated mock weather for:', location);
-
-    const weather = {
-      temperature: mockTemp,
-      condition: condition,
-      humidity: Math.floor(Math.random() * 40) + 40,
-      windSpeed: Math.floor(Math.random() * 20) + 5,
-      visibility: Math.floor(Math.random() * 5) + 5,
-      pressure: Math.floor(Math.random() * 30) + 1000,
-      rainChance: rainChance,
-      aqi: aqi,
-      aqiCategory: aqiCategory,
-      uvIndex: uvIndex,
-      uvCategory: uvCategory,
-      pollenLevel: pollenLevel,
-      pollenCategory: pollenCategory,
-    };
-
-    // Generate 5-day forecast
-    const forecasts = Array.from({ length: 5 }, (_, i) => {
-      const date = new Date();
-      date.setDate(date.getDate() + i);
-      const dayTemp = mockTemp + Math.floor(Math.random() * 10) - 5;
-      const dayCondition = conditions[Math.floor(Math.random() * conditions.length)];
-      const dayRainChance = dayCondition === 'Light Rain' ? Math.floor(Math.random() * 50) + 30 : Math.floor(Math.random() * 30);
+    if (realWeatherData) {
+      const { weatherData, forecastData, aqiData, uvData } = realWeatherData;
       
-      return {
-        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        day: date.toLocaleDateString('en-US', { weekday: 'short' }),
-        tempHigh: dayTemp + 3,
-        tempLow: dayTemp - 3,
-        condition: dayCondition,
-        rainChance: dayRainChance,
-        needsUmbrella: dayRainChance > 30,
+      console.log('Using real weather data from OpenWeatherMap');
+      
+      // Extract current weather
+      const temperature = Math.round(weatherData.main.temp);
+      const condition = getConditionFromWeather(weatherData);
+      const humidity = weatherData.main.humidity;
+      const windSpeed = Math.round(weatherData.wind.speed * 3.6); // Convert m/s to km/h
+      const visibility = Math.round((weatherData.visibility || 10000) / 1000); // Convert to km
+      const pressure = weatherData.main.pressure;
+      
+      // Calculate rain chance from clouds and weather
+      const clouds = weatherData.clouds?.all || 0;
+      const hasRain = condition.toLowerCase().includes('rain');
+      const rainChance = hasRain ? Math.min(90, 50 + clouds / 2) : Math.min(30, clouds / 3);
+      
+      // Get AQI
+      const aqiIndex = aqiData?.list?.[0]?.main?.aqi || 2;
+      const { aqi, category: aqiCategory } = getAqiCategory(aqiIndex);
+      
+      // Get UV Index (use estimate if not available)
+      const uvIndex = uvData?.value || Math.min(11, Math.max(1, Math.round(8 - clouds / 15)));
+      const uvCategory = getUvCategory(uvIndex);
+      
+      weather = {
+        temperature,
+        condition,
+        humidity,
+        windSpeed,
+        visibility,
+        pressure,
+        rainChance: Math.round(rainChance),
+        aqi,
+        aqiCategory,
+        uvIndex,
+        uvCategory,
       };
-    });
+      
+      // Process 5-day forecast - get one forecast per day at noon
+      const dailyForecasts = new Map();
+      forecastData.list.forEach((item: any) => {
+        const date = new Date(item.dt * 1000);
+        const dateKey = date.toDateString();
+        const hour = date.getHours();
+        
+        // Prefer noon forecasts (12:00)
+        if (!dailyForecasts.has(dateKey) || Math.abs(hour - 12) < Math.abs(dailyForecasts.get(dateKey).hour - 12)) {
+          dailyForecasts.set(dateKey, {
+            dt: item.dt,
+            hour,
+            temp_max: item.main.temp_max,
+            temp_min: item.main.temp_min,
+            weather: item.weather,
+            pop: item.pop || 0,
+          });
+        }
+      });
+      
+      forecasts = Array.from(dailyForecasts.values()).slice(0, 5).map((item: any) => {
+        const date = new Date(item.dt * 1000);
+        const condition = getConditionFromWeather({ weather: item.weather });
+        const rainChance = Math.round((item.pop || 0) * 100);
+        
+        return {
+          date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+          tempHigh: Math.round(item.temp_max),
+          tempLow: Math.round(item.temp_min),
+          condition,
+          rainChance,
+          needsUmbrella: rainChance > 30 || condition.toLowerCase().includes('rain'),
+        };
+      });
+      
+    } else {
+      console.log('Using mock weather data');
+      
+      // Fallback to mock data
+      const mockTemp = Math.floor(Math.random() * 15) + 15;
+      const conditions = ['Sunny', 'Partly Cloudy', 'Cloudy', 'Light Rain'];
+      const condition = conditions[Math.floor(Math.random() * conditions.length)];
+      const rainChance = condition === 'Light Rain' ? Math.floor(Math.random() * 50) + 30 : Math.floor(Math.random() * 30);
+      
+      const aqi = Math.floor(Math.random() * 200) + 10;
+      const aqiCategory = aqi <= 50 ? 'Good' : aqi <= 100 ? 'Moderate' : aqi <= 150 ? 'Unhealthy for Sensitive Groups' : aqi <= 200 ? 'Unhealthy' : 'Very Unhealthy';
+      
+      const uvIndex = Math.floor(Math.random() * 12);
+      const uvCategory = getUvCategory(uvIndex);
+      
+      weather = {
+        temperature: mockTemp,
+        condition,
+        humidity: Math.floor(Math.random() * 40) + 40,
+        windSpeed: Math.floor(Math.random() * 20) + 5,
+        visibility: Math.floor(Math.random() * 5) + 5,
+        pressure: Math.floor(Math.random() * 30) + 1000,
+        rainChance,
+        aqi,
+        aqiCategory,
+        uvIndex,
+        uvCategory,
+      };
+      
+      forecasts = Array.from({ length: 5 }, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() + i);
+        const dayTemp = mockTemp + Math.floor(Math.random() * 10) - 5;
+        const dayCondition = conditions[Math.floor(Math.random() * conditions.length)];
+        const dayRainChance = dayCondition === 'Light Rain' ? Math.floor(Math.random() * 50) + 30 : Math.floor(Math.random() * 30);
+        
+        return {
+          date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+          tempHigh: dayTemp + 3,
+          tempLow: dayTemp - 3,
+          condition: dayCondition,
+          rainChance: dayRainChance,
+          needsUmbrella: dayRainChance > 30,
+        };
+      });
+    }
 
     // Generate weather alerts
     const alerts = [];
@@ -123,79 +321,62 @@ serve(async (req) => {
     // Generate health notifications based on conditions
     const healthNotifications = [];
     
-    // AQI-based notifications
-    if (aqi > 100) {
+    if (weather.aqi > 100) {
       healthNotifications.push({
         type: 'aqi',
-        severity: aqi > 150 ? 'alert' : 'warning',
+        severity: weather.aqi > 150 ? 'alert' : 'warning',
         title: 'Poor Air Quality Alert',
-        message: `AQI is ${aqi} (${aqiCategory}). ${aqi > 150 ? 'Avoid outdoor activities. Stay indoors with air filtration.' : 'Limit prolonged outdoor activities, especially for sensitive groups with asthma or respiratory conditions.'}`,
-        bestWindow: aqi < 150 ? 'Early morning (6-8 AM) typically has better air quality' : null
+        message: `AQI is ${weather.aqi} (${weather.aqiCategory}). ${weather.aqi > 150 ? 'Avoid outdoor activities. Stay indoors with air filtration.' : 'Limit prolonged outdoor activities, especially for sensitive groups.'}`,
+        bestWindow: weather.aqi < 150 ? 'Early morning (6-8 AM) typically has better air quality' : null
       });
     }
     
-    // UV-based notifications
-    if (uvIndex >= 6) {
+    if (weather.uvIndex >= 6) {
       healthNotifications.push({
         type: 'uv',
-        severity: uvIndex >= 8 ? 'alert' : 'warning',
-        title: `${uvCategory} UV Index`,
-        message: `UV Index is ${uvIndex}. Wear SPF 30+ sunscreen, sunglasses, and protective clothing. Seek shade during peak hours (10 AM - 4 PM).`,
+        severity: weather.uvIndex >= 8 ? 'alert' : 'warning',
+        title: `${weather.uvCategory} UV Index`,
+        message: `UV Index is ${weather.uvIndex}. Wear SPF 30+ sunscreen, sunglasses, and protective clothing.`,
         bestWindow: 'Before 10 AM or after 4 PM for outdoor activities'
       });
     }
     
-    // Pollen-based notifications
-    if (pollenLevel >= 2) {
-      healthNotifications.push({
-        type: 'pollen',
-        severity: pollenLevel >= 3 ? 'alert' : 'warning',
-        title: `${pollenCategory} Pollen Count`,
-        message: `Pollen levels are ${pollenCategory.toLowerCase()}. ${pollenLevel >= 3 ? 'Take allergy medication before going outside.' : 'Consider taking allergy medication if you have allergies.'}`,
-        bestWindow: 'Evening hours typically have lower pollen counts'
-      });
-    }
-    
-    // Optimal activity windows
     const optimalWindows = [];
-    if (aqi <= 100 && uvIndex < 6 && weather.temperature >= 15 && weather.temperature <= 25) {
+    if (weather.aqi <= 100 && weather.uvIndex < 6 && weather.temperature >= 15 && weather.temperature <= 25) {
       optimalWindows.push({
         type: 'fitness',
         title: 'Ideal Workout Window',
-        message: `Perfect conditions now: Low AQI (${aqi}), moderate UV (${uvIndex}), comfortable temp (${weather.temperature}°C). Great time for outdoor exercise!`,
+        message: `Perfect conditions: Low AQI (${weather.aqi}), moderate UV (${weather.uvIndex}), comfortable temp (${weather.temperature}°C).`,
         timeWindow: 'Current conditions optimal for 2-3 hours'
       });
     }
 
-    // Call Lovable AI for activity recommendations with health context
-    const aiPrompt = `Based on the following comprehensive weather and health conditions in ${location}:
+    // Call Lovable AI for activity recommendations
+    const aiPrompt = `Based on the following weather and health conditions in ${location}:
 
 Weather:
 - Temperature: ${weather.temperature}°C
 - Condition: ${weather.condition}
 - Humidity: ${weather.humidity}%
-- Wind Speed: ${weather.windSpeed} mph
+- Wind Speed: ${weather.windSpeed} km/h
 - Rain Chance: ${weather.rainChance}%
 
 Health Factors:
 - Air Quality Index (AQI): ${weather.aqi} (${weather.aqiCategory})
 - UV Index: ${weather.uvIndex} (${weather.uvCategory})
-- Pollen Level: ${weather.pollenCategory}
 
-Generate 6 creative and health-conscious activity recommendations that consider both weather and health factors.
+Generate 6 creative and health-conscious activity recommendations.
 For activities, prioritize:
 - Indoor activities if AQI > 150 or UV Index > 8
 - Low-intensity activities if AQI > 100
 - Shade/indoor alternatives if UV Index > 6
-- Low-pollen exposure activities if pollen is High or Very High
 
 For each activity, provide:
 1. A catchy, specific title
-2. A detailed description (2-3 sentences) explaining why it's perfect for these conditions AND safe for health
+2. A detailed description (2-3 sentences)
 3. A category (Indoor, Outdoor, Sports, Cultural, Food & Dining, or Entertainment)
-4. Health considerations if relevant
 
-Format your response as a JSON array with objects containing "title", "description", "category", and optional "healthNote" fields.`;
+Format your response as a JSON array with objects containing "title", "description", "category" fields.`;
 
     console.log('Calling Lovable AI...');
     
@@ -232,7 +413,6 @@ Format your response as a JSON array with objects containing "title", "descripti
       const content = aiData.choices[0].message.content;
       console.log('AI content:', content);
       
-      // Extract JSON array from the response
       const jsonMatch = content.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
         activities = JSON.parse(jsonMatch[0]);
@@ -241,16 +421,15 @@ Format your response as a JSON array with objects containing "title", "descripti
       }
     } catch (parseError) {
       console.error('Error parsing AI response:', parseError);
-      // Fallback activities if AI parsing fails
       activities = [
         {
           title: "Perfect Weather Outing",
-          description: `Enjoy the ${weather.condition.toLowerCase()} weather with an outdoor adventure. The ${weather.temperature}°C temperature makes it ideal for exploring local parks or nature trails.`,
+          description: `Enjoy the ${weather.condition.toLowerCase()} weather with an outdoor adventure. The ${weather.temperature}°C temperature makes it ideal for exploring.`,
           category: "Outdoor"
         },
         {
           title: "Cozy Indoor Activity",
-          description: "Visit a local museum or art gallery. The controlled environment is perfect regardless of outdoor conditions.",
+          description: "Visit a local museum or art gallery. Perfect regardless of outdoor conditions.",
           category: "Cultural"
         },
         {
@@ -280,12 +459,11 @@ Format your response as a JSON array with objects containing "title", "descripti
   } catch (error) {
     console.error('Function error:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-    const errorDetails = error instanceof Error ? error.toString() : String(error);
     
     return new Response(
       JSON.stringify({ 
         error: errorMessage,
-        details: errorDetails
+        details: error instanceof Error ? error.toString() : String(error)
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
