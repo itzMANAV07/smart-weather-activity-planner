@@ -1,14 +1,45 @@
-// Import visual components we need
-import { Card } from "@/components/ui/card";      // Card container for styling
-import { Badge } from "@/components/ui/badge";    // Small label for category
-import { Sparkles } from "lucide-react";           // Star icon
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Sparkles, Bike, Dumbbell, Coffee, Book, Gamepad2, 
+  Trees, Camera, Music, Palette, UtensilsCrossed, ShoppingBag,
+  Footprints, Waves, Mountain, Home
+} from "lucide-react";
 
-// Define what an activity looks like
 interface Activity {
-  title: string;        // Name of the activity
-  description: string;  // Why it's good for this weather
-  category: string;     // Type (Indoor, Outdoor, etc.)
+  title: string;
+  description: string;
+  category: string;
 }
+
+const getCategoryIcon = (category: string) => {
+  const cat = category.toLowerCase();
+  if (cat.includes('outdoor')) return <Trees className="h-5 w-5" />;
+  if (cat.includes('indoor')) return <Home className="h-5 w-5" />;
+  if (cat.includes('fitness') || cat.includes('exercise')) return <Dumbbell className="h-5 w-5" />;
+  if (cat.includes('food') || cat.includes('dining')) return <UtensilsCrossed className="h-5 w-5" />;
+  if (cat.includes('shopping')) return <ShoppingBag className="h-5 w-5" />;
+  if (cat.includes('relax')) return <Coffee className="h-5 w-5" />;
+  return <Sparkles className="h-5 w-5" />;
+};
+
+const getActivityIcon = (title: string) => {
+  const t = title.toLowerCase();
+  if (t.includes('bike') || t.includes('cycling')) return <Bike className="h-5 w-5" />;
+  if (t.includes('gym') || t.includes('workout') || t.includes('exercise')) return <Dumbbell className="h-5 w-5" />;
+  if (t.includes('coffee') || t.includes('cafe')) return <Coffee className="h-5 w-5" />;
+  if (t.includes('read') || t.includes('book')) return <Book className="h-5 w-5" />;
+  if (t.includes('game') || t.includes('gaming')) return <Gamepad2 className="h-5 w-5" />;
+  if (t.includes('photo')) return <Camera className="h-5 w-5" />;
+  if (t.includes('music') || t.includes('concert')) return <Music className="h-5 w-5" />;
+  if (t.includes('art') || t.includes('museum') || t.includes('paint')) return <Palette className="h-5 w-5" />;
+  if (t.includes('walk') || t.includes('hike') || t.includes('jog')) return <Footprints className="h-5 w-5" />;
+  if (t.includes('swim') || t.includes('beach') || t.includes('pool')) return <Waves className="h-5 w-5" />;
+  if (t.includes('climb') || t.includes('mountain')) return <Mountain className="h-5 w-5" />;
+  if (t.includes('shop')) return <ShoppingBag className="h-5 w-5" />;
+  if (t.includes('restaurant') || t.includes('eat') || t.includes('food')) return <UtensilsCrossed className="h-5 w-5" />;
+  return <Sparkles className="h-5 w-5" />;
+};
 
 // Define what information this component needs
 interface ActivitySuggestionsProps {
@@ -63,25 +94,30 @@ export const ActivitySuggestions = ({ activities, loading }: ActivitySuggestions
         {/* Loop through each activity and create a card */}
         {activities.map((activity, index) => (
           <Card 
-            key={index}  // Unique identifier for React
-            className="p-6 bg-gradient-card backdrop-blur-sm border-2 hover:border-primary hover:shadow-medium transition-smooth group cursor-pointer"
-            style={{ animationDelay: `${index * 100}ms` }}  // Stagger the animation
+            key={index}
+            className="p-5 bg-card border border-border/50 hover:border-primary/50 hover:shadow-md transition-all duration-200 group cursor-pointer"
+            style={{ animationDelay: `${index * 100}ms` }}
           >
             <div className="space-y-4">
-              {/* Top row: title and category badge */}
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="text-xl font-semibold text-foreground group-hover:text-primary transition-smooth">
-                  {activity.title}
-                </h3>
-                {/* Small colored label showing category */}
-                <Badge variant="secondary" className="bg-accent/20 text-accent-foreground">
-                  {activity.category}
-                </Badge>
+              <div className="flex items-start gap-3">
+                <div className="p-2.5 rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-200">
+                  {getActivityIcon(activity.title)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+                      {activity.title}
+                    </h3>
+                    <Badge variant="outline" className="text-xs flex items-center gap-1 shrink-0">
+                      {getCategoryIcon(activity.category)}
+                      {activity.category}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed mt-2">
+                    {activity.description}
+                  </p>
+                </div>
               </div>
-              {/* Activity description */}
-              <p className="text-muted-foreground leading-relaxed">
-                {activity.description}
-              </p>
             </div>
           </Card>
         ))}
