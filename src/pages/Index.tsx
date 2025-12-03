@@ -1,6 +1,7 @@
 // Import React's useState to manage changing data (like location input, weather data)
 import { useState } from "react";
 
+import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { WeatherCard } from "@/components/WeatherCard";
 import { ActivitySuggestions } from "@/components/ActivitySuggestions";
@@ -125,12 +126,20 @@ const Index = () => {
   // This is what gets displayed on the screen
   return (
     <div className="min-h-screen bg-background">
-      {/* Top section with search bar and title */}
-      <Hero 
-        location={location}              // Pass current location text
-        onLocationChange={setLocation}   // Function to update location when user types
-        onSearch={handleSearch}          // Function to run when search button is clicked
+      {/* Header with dark mode toggle */}
+      <Header 
+        onLocationDetected={setLocation}
+        onSearch={handleSearch}
       />
+      
+      {/* Top section with search bar and title */}
+      <div className="pt-16">
+        <Hero 
+          location={location}
+          onLocationChange={setLocation}
+          onSearch={handleSearch}
+        />
+      </div>
       
       {/* Main content area */}
       <div className="container mx-auto px-4 py-12 space-y-12">
