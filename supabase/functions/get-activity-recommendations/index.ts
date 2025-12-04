@@ -152,6 +152,7 @@ serve(async (req) => {
     
     let weather;
     let forecasts;
+    let hourlyForecasts: { time: string; temp: number; condition: string; rainChance: number; }[] = [];
     
     if (realWeatherData) {
       const { weatherData, forecastData, aqiData, uvData } = realWeatherData;
@@ -229,6 +230,20 @@ serve(async (req) => {
         };
       });
       
+      // Process hourly forecast (next 12 hours from the 3-hour intervals)
+      hourlyForecasts = forecastData.list.slice(0, 8).map((item: any) => {
+        const date = new Date(item.dt * 1000);
+        const condition = getConditionFromWeather({ weather: item.weather });
+        const rainChance = Math.round((item.pop || 0) * 100);
+        
+        return {
+          time: date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
+          temp: Math.round(item.main.temp),
+          condition,
+          rainChance,
+        };
+      });
+      
     } else {
       console.log('Using mock weather data');
       
@@ -273,6 +288,22 @@ serve(async (req) => {
           condition: dayCondition,
           rainChance: dayRainChance,
           needsUmbrella: dayRainChance > 30,
+        };
+      });
+      
+      // Mock hourly forecasts
+      hourlyForecasts = Array.from({ length: 8 }, (_, i) => {
+        const date = new Date();
+        date.setHours(date.getHours() + i * 3);
+        const hourTemp = mockTemp + Math.floor(Math.random() * 6) - 3;
+        const hourCondition = conditions[Math.floor(Math.random() * conditions.length)];
+        const hourRainChance = hourCondition === 'Light Rain' ? Math.floor(Math.random() * 50) + 30 : Math.floor(Math.random() * 30);
+        
+        return {
+          time: date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
+          temp: hourTemp,
+          condition: hourCondition,
+          rainChance: hourRainChance,
         };
       });
     }
@@ -446,7 +477,8 @@ Format your response as a JSON array with objects containing "title", "descripti
       JSON.stringify({ 
         weather, 
         activities, 
-        forecasts, 
+        forecasts,
+        hourlyForecasts: hourlyForecasts || [],
         alerts,
         healthNotifications,
         optimalWindows

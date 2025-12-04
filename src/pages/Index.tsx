@@ -5,7 +5,7 @@ import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { WeatherCard } from "@/components/WeatherCard";
 import { ActivitySuggestions } from "@/components/ActivitySuggestions";
-import { ForecastCard } from "@/components/ForecastCard";
+import { ForecastTabs } from "@/components/ForecastTabs";
 import { WeatherAlerts } from "@/components/WeatherAlerts";
 import { HealthMetrics } from "@/components/HealthMetrics";
 import { OutfitSuggestions } from "@/components/OutfitSuggestions";
@@ -49,6 +49,14 @@ interface DailyForecast {
   needsUmbrella: boolean;     // Should you bring an umbrella?
 }
 
+// Define what an hourly forecast looks like
+interface HourlyForecast {
+  time: string;               // Time like "3 PM"
+  temp: number;               // Temperature
+  condition: string;          // Weather description
+  rainChance: number;         // Percentage chance of rain
+}
+
 // Define what weather alerts look like
 interface WeatherAlert {
   type: string;               // Type of alert (rain, wind, temperature)
@@ -63,7 +71,8 @@ const Index = () => {
   const [location, setLocation] = useState("");                       // User's typed location
   const [weather, setWeather] = useState<WeatherData | null>(null);   // Current weather data
   const [activities, setActivities] = useState<Activity[]>([]);       // List of activity suggestions
-  const [forecasts, setForecasts] = useState<DailyForecast[]>([]);   // 5-day forecast
+  const [forecasts, setForecasts] = useState<DailyForecast[]>([]);   // Daily forecast
+  const [hourlyForecasts, setHourlyForecasts] = useState<HourlyForecast[]>([]); // Hourly forecast
   const [alerts, setAlerts] = useState<WeatherAlert[]>([]);           // Weather warnings
   const [loading, setLoading] = useState(false);                      // Is data being loaded?
   const { toast } = useToast();                                       // For showing messages
@@ -86,6 +95,7 @@ const Index = () => {
     setWeather(null);
     setActivities([]);
     setForecasts([]);
+    setHourlyForecasts([]);
     setAlerts([]);
 
     try {
@@ -101,7 +111,8 @@ const Index = () => {
       // Save all the data we got back
       setWeather(data.weather);              // Current weather info
       setActivities(data.activities);        // Activity suggestions
-      setForecasts(data.forecasts || []);    // 5-day forecast
+      setForecasts(data.forecasts || []);    // Daily forecast
+      setHourlyForecasts(data.hourlyForecasts || []); // Hourly forecast
       setAlerts(data.alerts || []);
 
       // Show success message
@@ -170,8 +181,18 @@ const Index = () => {
           </>
         )}
         
-        {/* Show 5-day forecast if we have forecast data */}
-        {forecasts.length > 0 && <ForecastCard forecasts={forecasts} />}
+        {/* Show forecast tabs if we have forecast data */}
+        {weather && (forecasts.length > 0 || hourlyForecasts.length > 0) && (
+          <ForecastTabs 
+            hourlyForecasts={hourlyForecasts}
+            dailyForecasts={forecasts}
+            currentWeather={{
+              temperature: weather.temperature,
+              condition: weather.condition,
+              rainChance: weather.rainChance,
+            }}
+          />
+        )}
       </div>
     </div>
   );
