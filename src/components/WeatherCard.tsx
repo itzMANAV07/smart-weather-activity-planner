@@ -51,51 +51,51 @@ export const WeatherCard = ({ weather, location }: WeatherCardProps) => {
           )}
         </div>
 
-        {/* Bottom section: detailed weather stats in a grid */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 pt-4 border-t border-border">
-          {/* Humidity stat */}
-          <div className="flex items-center gap-2">
-            <Droplets className="h-5 w-5 text-primary" />
-            <div>
-              <p className="text-sm text-muted-foreground">Humidity</p>
-              <p className="text-lg font-semibold text-foreground">{weather.humidity}%</p>
+        {/* Weather details list */}
+        <div className="divide-y divide-border pt-4 border-t border-border">
+          {/* Wind */}
+          <div className="flex items-center justify-between py-3">
+            <div className="flex items-center gap-3">
+              <Wind className="h-5 w-5 text-primary" />
+              <span className="text-foreground font-medium">Wind</span>
             </div>
+            <span className="text-foreground font-semibold">{weather.windSpeed} km/h</span>
           </div>
 
-          {/* Wind speed stat */}
-          <div className="flex items-center gap-2">
-            <Wind className="h-5 w-5 text-primary" />
-            <div>
-              <p className="text-sm text-muted-foreground">Wind</p>
-              <p className="text-lg font-semibold text-foreground">{weather.windSpeed} mph</p>
+          {/* Humidity */}
+          <div className="flex items-center justify-between py-3">
+            <div className="flex items-center gap-3">
+              <Droplets className="h-5 w-5 text-primary" />
+              <span className="text-foreground font-medium">Humidity</span>
             </div>
+            <span className="text-foreground font-semibold">{weather.humidity}%</span>
           </div>
 
-          {/* Visibility stat */}
-          <div className="flex items-center gap-2">
-            <Eye className="h-5 w-5 text-primary" />
-            <div>
-              <p className="text-sm text-muted-foreground">Visibility</p>
-              <p className="text-lg font-semibold text-foreground">{weather.visibility} mi</p>
+          {/* Pressure */}
+          <div className="flex items-center justify-between py-3">
+            <div className="flex items-center gap-3">
+              <Gauge className="h-5 w-5 text-primary" />
+              <span className="text-foreground font-medium">Pressure</span>
             </div>
+            <span className="text-foreground font-semibold">{weather.pressure} mb</span>
           </div>
 
-          {/* Pressure stat */}
-          <div className="flex items-center gap-2">
-            <Gauge className="h-5 w-5 text-primary" />
-            <div>
-              <p className="text-sm text-muted-foreground">Pressure</p>
-              <p className="text-lg font-semibold text-foreground">{weather.pressure} mb</p>
+          {/* Visibility */}
+          <div className="flex items-center justify-between py-3">
+            <div className="flex items-center gap-3">
+              <Eye className="h-5 w-5 text-primary" />
+              <span className="text-foreground font-medium">Visibility</span>
             </div>
+            <span className="text-foreground font-semibold">{weather.visibility} km</span>
           </div>
 
-          {/* Rain chance stat */}
-          <div className="flex items-center gap-2">
-            <CloudRain className="h-5 w-5 text-primary" />
-            <div>
-              <p className="text-sm text-muted-foreground">Rain Chance</p>
-              <p className="text-lg font-semibold text-foreground">{weather.rainChance}%</p>
+          {/* Rain Chance */}
+          <div className="flex items-center justify-between py-3">
+            <div className="flex items-center gap-3">
+              <CloudRain className="h-5 w-5 text-primary" />
+              <span className="text-foreground font-medium">Rain Chance</span>
             </div>
+            <span className="text-foreground font-semibold">{weather.rainChance}%</span>
           </div>
         </div>
       </div>
