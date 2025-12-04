@@ -7,7 +7,7 @@ import { WeatherCard } from "@/components/WeatherCard";
 import { ActivitySuggestions } from "@/components/ActivitySuggestions";
 import { ForecastTabs } from "@/components/ForecastTabs";
 import { WeatherAlerts } from "@/components/WeatherAlerts";
-import { HealthMetrics } from "@/components/HealthMetrics";
+import { WeatherMetricsGrid } from "@/components/WeatherMetricsGrid";
 import { OutfitSuggestions } from "@/components/OutfitSuggestions";
 
 // Import toast for showing pop-up messages to the user
@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 // Define what weather data looks like (the structure of the information)
 interface WeatherData {
   temperature: number;        // Temperature in degrees
+  feelsLike: number;          // Feels like temperature
   condition: string;          // Weather description like "Sunny" or "Rainy"
   humidity: number;           // Moisture in the air (percentage)
   windSpeed: number;          // How fast the wind is blowing
@@ -159,12 +160,15 @@ const Index = () => {
         
         {weather && (
           <>
-            {weather.aqi !== undefined && (
-              <HealthMetrics 
-                aqi={weather.aqi}
-                aqiCategory={weather.aqiCategory}
+            {weather.uvIndex !== undefined && (
+              <WeatherMetricsGrid 
                 uvIndex={weather.uvIndex}
                 uvCategory={weather.uvCategory}
+                feelsLike={weather.feelsLike}
+                humidity={weather.humidity}
+                windSpeed={weather.windSpeed}
+                pressure={weather.pressure}
+                visibility={weather.visibility}
               />
             )}
             

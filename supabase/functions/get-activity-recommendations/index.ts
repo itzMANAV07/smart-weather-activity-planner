@@ -161,6 +161,7 @@ serve(async (req) => {
       
       // Extract current weather
       const temperature = Math.round(weatherData.main.temp);
+      const feelsLike = Math.round(weatherData.main.feels_like);
       const condition = getConditionFromWeather(weatherData);
       const humidity = weatherData.main.humidity;
       const windSpeed = Math.round(weatherData.wind.speed * 3.6); // Convert m/s to km/h
@@ -182,6 +183,7 @@ serve(async (req) => {
       
       weather = {
         temperature,
+        feelsLike,
         condition,
         humidity,
         windSpeed,
@@ -261,6 +263,7 @@ serve(async (req) => {
       
       weather = {
         temperature: mockTemp,
+        feelsLike: mockTemp + Math.floor(Math.random() * 4) - 2,
         condition,
         humidity: Math.floor(Math.random() * 40) + 40,
         windSpeed: Math.floor(Math.random() * 20) + 5,
