@@ -1,4 +1,4 @@
-import { Sun, Thermometer, Droplets, Wind, Gauge, Eye } from "lucide-react";
+import { Sun, Thermometer, Droplets, Wind, Gauge, Eye, Sunrise, Sunset } from "lucide-react";
 
 interface WeatherMetricsGridProps {
   uvIndex: number;
@@ -8,6 +8,8 @@ interface WeatherMetricsGridProps {
   windSpeed: number;
   pressure: number;
   visibility: number;
+  sunrise?: string;
+  sunset?: string;
 }
 
 export const WeatherMetricsGrid = ({
@@ -18,6 +20,8 @@ export const WeatherMetricsGrid = ({
   windSpeed,
   pressure,
   visibility,
+  sunrise,
+  sunset,
 }: WeatherMetricsGridProps) => {
   const metrics = [
     {
@@ -45,16 +49,16 @@ export const WeatherMetricsGrid = ({
       subtext: "km/h",
     },
     {
-      icon: Gauge,
-      label: "Pressure",
-      value: `${pressure}`,
-      subtext: "mb",
+      icon: Sunrise,
+      label: "Sunrise",
+      value: sunrise || "--:--",
+      subtext: "AM",
     },
     {
-      icon: Eye,
-      label: "Visibility",
-      value: `${visibility}`,
-      subtext: "km",
+      icon: Sunset,
+      label: "Sunset",
+      value: sunset || "--:--",
+      subtext: "PM",
     },
   ];
 

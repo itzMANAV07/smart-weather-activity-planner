@@ -1,53 +1,72 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shirt, Umbrella, Glasses, Wind, CloudSnow, ThermometerSun } from "lucide-react";
+import { Shirt, Umbrella, Glasses, Wind, CloudSnow, ThermometerSun, Sun as SunIcon } from "lucide-react";
 
 interface OutfitSuggestionsProps {
   temperature: number;
   condition: string;
   rainChance: number;
+  uvIndex?: number;
 }
 
-export const OutfitSuggestions = ({ temperature, condition, rainChance }: OutfitSuggestionsProps) => {
+export const OutfitSuggestions = ({ temperature, condition, rainChance, uvIndex = 0 }: OutfitSuggestionsProps) => {
   const getOutfitSuggestions = () => {
-    const suggestions: { item: string; reason: string; icon: React.ReactNode }[] = [];
+    const suggestions: { item: string; reason: string; icon: React.ReactNode; priority: number }[] = [];
     const conditionLower = condition.toLowerCase();
+
+    // Sunglasses - based on sunny conditions OR high UV
+    const isSunny = conditionLower.includes('sunny') || conditionLower.includes('clear');
+    if (isSunny || uvIndex >= 3) {
+      suggestions.push({ 
+        item: "Sunglasses", 
+        reason: isSunny ? "Bright sunny conditions" : `UV Index is ${uvIndex} - protect your eyes`, 
+        icon: <Glasses className="h-5 w-5" />,
+        priority: 1
+      });
+    }
+
+    // Sunscreen - based on UV index
+    if (uvIndex >= 3) {
+      suggestions.push({ 
+        item: "Sunscreen SPF 30+", 
+        reason: `UV Index is ${uvIndex} (${uvIndex <= 5 ? 'Moderate' : uvIndex <= 7 ? 'High' : 'Very High'}) - protect your skin`, 
+        icon: <SunIcon className="h-5 w-5" />,
+        priority: 2
+      });
+    }
+
+    // Umbrella - based on rain chance OR rainy conditions
+    if (rainChance >= 30 || conditionLower.includes('rain') || conditionLower.includes('drizzle') || conditionLower.includes('shower')) {
+      suggestions.push({ 
+        item: "Umbrella", 
+        reason: conditionLower.includes('rain') ? `${condition} expected` : `${rainChance}% chance of rain`, 
+        icon: <Umbrella className="h-5 w-5" />,
+        priority: 1
+      });
+    }
 
     // Temperature-based suggestions
     if (temperature < 10) {
-      suggestions.push({ item: "Warm jacket", reason: "It's cold outside", icon: <CloudSnow className="h-5 w-5" /> });
-      suggestions.push({ item: "Layered clothing", reason: "Stay warm with layers", icon: <Shirt className="h-5 w-5" /> });
+      suggestions.push({ item: "Warm jacket", reason: `Cold at ${temperature}°C`, icon: <CloudSnow className="h-5 w-5" />, priority: 3 });
+      suggestions.push({ item: "Layered clothing", reason: "Stay warm with layers", icon: <Shirt className="h-5 w-5" />, priority: 4 });
     } else if (temperature < 20) {
-      suggestions.push({ item: "Light jacket", reason: "Mild temperatures", icon: <Shirt className="h-5 w-5" /> });
+      suggestions.push({ item: "Light jacket", reason: `Mild at ${temperature}°C`, icon: <Shirt className="h-5 w-5" />, priority: 4 });
     } else if (temperature >= 25) {
-      suggestions.push({ item: "Light, breathable clothes", reason: "Stay cool in the heat", icon: <ThermometerSun className="h-5 w-5" /> });
-      suggestions.push({ item: "Sunglasses", reason: "Protect your eyes", icon: <Glasses className="h-5 w-5" /> });
-    }
-
-    // Rain-based suggestions
-    if (rainChance > 40 || conditionLower.includes('rain')) {
-      suggestions.push({ item: "Umbrella", reason: `${rainChance}% chance of rain`, icon: <Umbrella className="h-5 w-5" /> });
-      suggestions.push({ item: "Waterproof shoes", reason: "Keep your feet dry", icon: <CloudSnow className="h-5 w-5" /> });
+      suggestions.push({ item: "Light, breathable clothes", reason: `Warm at ${temperature}°C`, icon: <ThermometerSun className="h-5 w-5" />, priority: 3 });
     }
 
     // Wind-based suggestions
-    if (conditionLower.includes('wind')) {
-      suggestions.push({ item: "Windbreaker", reason: "Protect against wind", icon: <Wind className="h-5 w-5" /> });
-    }
-
-    // Sunny weather
-    if (conditionLower.includes('sunny') || conditionLower.includes('clear')) {
-      if (!suggestions.find(s => s.item === "Sunglasses")) {
-        suggestions.push({ item: "Sunglasses", reason: "Bright conditions", icon: <Glasses className="h-5 w-5" /> });
-      }
+    if (conditionLower.includes('wind') || conditionLower.includes('breez')) {
+      suggestions.push({ item: "Windbreaker", reason: "Protect against wind", icon: <Wind className="h-5 w-5" />, priority: 5 });
     }
 
     // Default suggestion if none
     if (suggestions.length === 0) {
-      suggestions.push({ item: "Comfortable casual wear", reason: "Pleasant weather", icon: <Shirt className="h-5 w-5" /> });
+      suggestions.push({ item: "Comfortable casual wear", reason: "Pleasant weather", icon: <Shirt className="h-5 w-5" />, priority: 10 });
     }
 
-    return suggestions;
+    // Sort by priority and return top 4
+    return suggestions.sort((a, b) => a.priority - b.priority).slice(0, 4);
   };
 
   const suggestions = getOutfitSuggestions();
