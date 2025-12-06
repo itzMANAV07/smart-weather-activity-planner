@@ -21,7 +21,7 @@ export const Hero = ({ location, onLocationChange, onSearch }: HeroProps) => {
         </h1>
         
         <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto font-medium">
-          AI-powered activity planning with real-time air quality insights
+          Using Cloud Based Application
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto mt-8">

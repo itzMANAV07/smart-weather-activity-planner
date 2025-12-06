@@ -168,6 +168,16 @@ serve(async (req) => {
       const visibility = Math.round((weatherData.visibility || 10000) / 1000); // Convert to km
       const pressure = weatherData.main.pressure;
       
+      // Extract sunrise and sunset times
+      const sunriseTimestamp = weatherData.sys?.sunrise;
+      const sunsetTimestamp = weatherData.sys?.sunset;
+      const sunrise = sunriseTimestamp 
+        ? new Date(sunriseTimestamp * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+        : '6:00 AM';
+      const sunset = sunsetTimestamp 
+        ? new Date(sunsetTimestamp * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+        : '6:00 PM';
+      
       // Calculate rain chance from clouds and weather
       const clouds = weatherData.clouds?.all || 0;
       const hasRain = condition.toLowerCase().includes('rain');
@@ -194,6 +204,8 @@ serve(async (req) => {
         aqiCategory,
         uvIndex,
         uvCategory,
+        sunrise,
+        sunset,
       };
       
       // Process 5-day forecast - get one forecast per day at noon
@@ -274,6 +286,8 @@ serve(async (req) => {
         aqiCategory,
         uvIndex,
         uvCategory,
+        sunrise: '6:30 AM',
+        sunset: '6:45 PM',
       };
       
       forecasts = Array.from({ length: 5 }, (_, i) => {

@@ -30,6 +30,8 @@ interface WeatherData {
   aqiCategory: string;        // AQI category (Good, Moderate, etc.)
   uvIndex: number;            // UV Index
   uvCategory: string;         // UV category (Low, Moderate, etc.)
+  sunrise: string;            // Sunrise time
+  sunset: string;             // Sunset time
 }
 
 // Define what an activity recommendation looks like
@@ -169,6 +171,8 @@ const Index = () => {
                 windSpeed={weather.windSpeed}
                 pressure={weather.pressure}
                 visibility={weather.visibility}
+                sunrise={weather.sunrise}
+                sunset={weather.sunset}
               />
             )}
             
@@ -178,6 +182,7 @@ const Index = () => {
                 temperature={weather.temperature}
                 condition={weather.condition}
                 rainChance={weather.rainChance}
+                uvIndex={weather.uvIndex}
               />
             </div>
             
