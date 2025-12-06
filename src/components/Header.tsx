@@ -8,12 +8,13 @@ interface HeaderProps {
 }
 
 export const Header = ({ onLocationDetected, onSearch }: HeaderProps) => {
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(true);
   const [detecting, setDetecting] = useState(false);
 
   useEffect(() => {
-    const isDarkMode = document.documentElement.classList.contains('dark');
-    setIsDark(isDarkMode);
+    // Set dark mode as default on initial load
+    document.documentElement.classList.add('dark');
+    setIsDark(true);
   }, []);
 
   const toggleTheme = () => {
