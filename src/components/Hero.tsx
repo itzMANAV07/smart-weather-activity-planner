@@ -1,7 +1,6 @@
 import { MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { AnimatedWeatherIcon } from "./AnimatedWeatherIcon";
 
 interface HeroProps {
   location: string;
@@ -12,23 +11,6 @@ interface HeroProps {
 export const Hero = ({ location, onLocationChange, onSearch }: HeroProps) => {
   return (
     <div className="relative min-h-[60vh] flex flex-col items-center justify-center px-4 py-16 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-hero" />
-      
-      {/* Floating animated weather icons in background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-[10%] opacity-20">
-          <AnimatedWeatherIcon condition="sunny" size="h-24 w-24" />
-        </div>
-        <div className="absolute top-40 right-[15%] opacity-15">
-          <AnimatedWeatherIcon condition="cloudy" size="h-20 w-20" />
-        </div>
-        <div className="absolute bottom-32 left-[20%] opacity-10">
-          <AnimatedWeatherIcon condition="rain" size="h-16 w-16" />
-        </div>
-        <div className="absolute bottom-20 right-[25%] opacity-15">
-          <AnimatedWeatherIcon condition="snow" size="h-14 w-14" />
-        </div>
-      </div>
       
       <div className="relative z-10 text-center max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <h1 className="text-5xl md:text-7xl font-display font-bold text-foreground leading-tight tracking-tight">
