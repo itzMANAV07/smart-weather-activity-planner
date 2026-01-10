@@ -7,12 +7,7 @@ const corsHeaders = {
 
 // Fetch real weather data from OpenWeatherMap
 async function fetchWeatherData(location: string) {
-  const OPENWEATHER_API_KEY = Deno.env.get('OPENWEATHER_API_KEY');
-  
-  if (!OPENWEATHER_API_KEY) {
-    console.log('OpenWeatherMap API key not found, using mock data');
-    return null;
-  }
+  const OPENWEATHER_API_KEY = '8ae4500adfa5be07e29890719e216cc0';
 
   try {
     // First, geocode the location to get coordinates
