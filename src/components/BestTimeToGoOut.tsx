@@ -89,28 +89,70 @@ export const BestTimeToGoOut = ({ currentAqi, currentAqiCategory, bestTimeSlots 
         </div>
       )}
 
-      {/* Time Slots */}
-      <div className="space-y-2">
-        {bestTimeSlots.map((slot, index) => (
-          <div
-            key={index}
-            className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ${
-              index === 0
-                ? 'bg-emerald-500/10 border border-emerald-500/20'
-                : 'bg-muted/20 hover:bg-muted/40'
-            }`}
-          >
-            {getAqiIcon(slot.aqiCategory)}
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground">{slot.time}</p>
-              <p className="text-xs text-muted-foreground truncate">{slot.recommendation}</p>
+      {/* Visual Timeline */}
+      <div className="relative">
+        {bestTimeSlots.map((slot, index) => {
+          const isBest = index === 0;
+          return (
+            <div key={index} className="relative flex gap-4">
+              {/* Timeline line & dot */}
+              <div className="flex flex-col items-center">
+                <div
+                  className={`w-3.5 h-3.5 rounded-full border-2 z-10 shrink-0 ${
+                    isBest
+                      ? 'bg-emerald-500 border-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+                      : slot.aqiCategory === 'Good'
+                        ? 'bg-emerald-500/60 border-emerald-500/40'
+                        : slot.aqiCategory === 'Moderate'
+                          ? 'bg-yellow-500/60 border-yellow-500/40'
+                          : 'bg-red-500/60 border-red-500/40'
+                  }`}
+                />
+                {index < bestTimeSlots.length - 1 && (
+                  <div className="w-0.5 flex-1 bg-border/50 min-h-[2rem]" />
+                )}
+              </div>
+
+              {/* Content */}
+              <div
+                className={`flex-1 pb-5 -mt-1 ${
+                  index === bestTimeSlots.length - 1 ? 'pb-0' : ''
+                }`}
+              >
+                <div
+                  className={`p-3 rounded-lg transition-all duration-200 ${
+                    isBest
+                      ? 'bg-emerald-500/10 border border-emerald-500/25'
+                      : 'bg-muted/20'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      {getAqiIcon(slot.aqiCategory)}
+                      <span className={`text-sm font-semibold ${isBest ? 'text-emerald-700 dark:text-emerald-400' : 'text-foreground'}`}>
+                        {slot.time}
+                      </span>
+                      {isBest && (
+                        <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 border text-[10px] px-1.5 py-0">
+                          Best
+                        </Badge>
+                      )}
+                    </div>
+                    <span className="text-sm font-bold text-foreground">{slot.aqi} <span className="text-xs font-normal text-muted-foreground">AQI</span></span>
+                  </div>
+                  {/* Mini AQI bar */}
+                  <div className="h-1.5 rounded-full bg-muted overflow-hidden mb-1.5">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${getAqiBarColor(slot.aqi)}`}
+                      style={{ width: `${getAqiBarWidth(slot.aqi)}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">{slot.recommendation}</p>
+                </div>
+              </div>
             </div>
-            <div className="text-right shrink-0">
-              <p className="text-sm font-bold text-foreground">{slot.aqi}</p>
-              <p className="text-xs text-muted-foreground">AQI</p>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {bestTimeSlots.length === 0 && (
