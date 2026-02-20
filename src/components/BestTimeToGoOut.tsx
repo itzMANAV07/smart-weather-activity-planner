@@ -94,7 +94,8 @@ export const BestTimeToGoOut = ({ currentAqi, currentAqiCategory, bestTimeSlots 
       <motion.div
         className="relative"
         initial="hidden"
-        animate="visible"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
         variants={{
           hidden: {},
           visible: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
