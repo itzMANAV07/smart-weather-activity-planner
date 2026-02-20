@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, CheckCircle, AlertTriangle, XCircle, Leaf } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface BestTimeSlot {
   time: string;
@@ -90,14 +91,29 @@ export const BestTimeToGoOut = ({ currentAqi, currentAqiCategory, bestTimeSlots 
       )}
 
       {/* Visual Timeline */}
-      <div className="relative">
+      <motion.div
+        className="relative"
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: {},
+          visible: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
+        }}
+      >
         {bestTimeSlots.map((slot, index) => {
           const isBest = index === 0;
           return (
-            <div key={index} className="relative flex gap-4">
+            <motion.div
+              key={index}
+              className="relative flex gap-4"
+              variants={{
+                hidden: { opacity: 0, x: -20 },
+                visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease: "easeOut" } },
+              }}
+            >
               {/* Timeline line & dot */}
               <div className="flex flex-col items-center">
-                <div
+                <motion.div
                   className={`w-3.5 h-3.5 rounded-full border-2 z-10 shrink-0 ${
                     isBest
                       ? 'bg-emerald-500 border-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
@@ -107,9 +123,19 @@ export const BestTimeToGoOut = ({ currentAqi, currentAqiCategory, bestTimeSlots 
                           ? 'bg-yellow-500/60 border-yellow-500/40'
                           : 'bg-red-500/60 border-red-500/40'
                   }`}
+                  variants={{
+                    hidden: { scale: 0 },
+                    visible: { scale: 1, transition: { type: "spring", stiffness: 300, damping: 15 } },
+                  }}
                 />
                 {index < bestTimeSlots.length - 1 && (
-                  <div className="w-0.5 flex-1 bg-border/50 min-h-[2rem]" />
+                  <motion.div
+                    className="w-0.5 flex-1 bg-border/50 min-h-[2rem]"
+                    variants={{
+                      hidden: { scaleY: 0, originY: 0 },
+                      visible: { scaleY: 1, transition: { duration: 0.3, delay: 0.1 } },
+                    }}
+                  />
                 )}
               </div>
 
@@ -150,10 +176,10 @@ export const BestTimeToGoOut = ({ currentAqi, currentAqiCategory, bestTimeSlots 
                   <p className="text-xs text-muted-foreground">{slot.recommendation}</p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
 
       {bestTimeSlots.length === 0 && (
         <div className="text-center py-6 text-muted-foreground">
