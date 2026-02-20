@@ -9,6 +9,7 @@ import { ForecastTabs } from "@/components/ForecastTabs";
 import { WeatherAlerts } from "@/components/WeatherAlerts";
 import { WeatherMetricsGrid } from "@/components/WeatherMetricsGrid";
 import { OutfitSuggestions } from "@/components/OutfitSuggestions";
+import { BestTimeToGoOut } from "@/components/BestTimeToGoOut";
 
 // Import toast for showing pop-up messages to the user
 import { useToast } from "@/hooks/use-toast";
@@ -62,23 +63,30 @@ interface HourlyForecast {
 
 // Define what weather alerts look like
 interface WeatherAlert {
-  type: string;               // Type of alert (rain, wind, temperature)
-  severity: "warning" | "severe" | "extreme";  // How serious it is
-  title: string;              // Short description
-  description: string;        // Full details
+  type: string;
+  severity: "warning" | "severe" | "extreme";
+  title: string;
+  description: string;
+}
+
+interface BestTimeSlot {
+  time: string;
+  aqi: number;
+  aqiCategory: string;
+  recommendation: string;
 }
 
 // This is the main page component
 const Index = () => {
-  // Create variables to store our data (these can change)
-  const [location, setLocation] = useState("");                       // User's typed location
-  const [weather, setWeather] = useState<WeatherData | null>(null);   // Current weather data
-  const [activities, setActivities] = useState<Activity[]>([]);       // List of activity suggestions
-  const [forecasts, setForecasts] = useState<DailyForecast[]>([]);   // Daily forecast
-  const [hourlyForecasts, setHourlyForecasts] = useState<HourlyForecast[]>([]); // Hourly forecast
-  const [alerts, setAlerts] = useState<WeatherAlert[]>([]);           // Weather warnings
-  const [loading, setLoading] = useState(false);                      // Is data being loaded?
-  const { toast } = useToast();                                       // For showing messages
+  const [location, setLocation] = useState("");
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [forecasts, setForecasts] = useState<DailyForecast[]>([]);
+  const [hourlyForecasts, setHourlyForecasts] = useState<HourlyForecast[]>([]);
+  const [alerts, setAlerts] = useState<WeatherAlert[]>([]);
+  const [bestTimeSlots, setBestTimeSlots] = useState<BestTimeSlot[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   // This function runs when the user clicks the search button
   const handleSearch = async () => {
@@ -100,7 +108,7 @@ const Index = () => {
     setForecasts([]);
     setHourlyForecasts([]);
     setAlerts([]);
-
+    setBestTimeSlots([]);
     try {
       // Call our backend to get weather data and activity suggestions
       // This is like making a phone call to ask for information
@@ -117,6 +125,7 @@ const Index = () => {
       setForecasts(data.forecasts || []);    // Daily forecast
       setHourlyForecasts(data.hourlyForecasts || []); // Hourly forecast
       setAlerts(data.alerts || []);
+      setBestTimeSlots(data.bestTimeSlots || []);
 
       // Show success message
       toast({
@@ -185,6 +194,14 @@ const Index = () => {
                 uvIndex={weather.uvIndex}
               />
             </div>
+
+            {bestTimeSlots.length > 0 && (
+              <BestTimeToGoOut
+                currentAqi={weather.aqi}
+                currentAqiCategory={weather.aqiCategory}
+                bestTimeSlots={bestTimeSlots}
+              />
+            )}
             
             <ActivitySuggestions activities={activities} loading={loading} />
           </>

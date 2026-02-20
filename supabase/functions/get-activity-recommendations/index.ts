@@ -483,6 +483,36 @@ Format your response as a JSON array with objects containing "title", "descripti
       ];
     }
 
+    // Generate "Best Time to Go Out" based on AQI from hourly data
+    const bestTimeSlots: { time: string; aqi: number; aqiCategory: string; recommendation: string }[] = [];
+
+    // Use hourly forecasts to estimate AQI windows
+    // OpenWeatherMap free tier doesn't give hourly AQI, so we estimate based on current AQI + time-of-day patterns
+    const currentAqi = weather.aqi;
+    const timeWindows = [
+      { time: 'Early Morning (6–8 AM)', factor: 0.7 },
+      { time: 'Morning (8–10 AM)', factor: 0.8 },
+      { time: 'Midday (10 AM–1 PM)', factor: 1.1 },
+      { time: 'Afternoon (1–4 PM)', factor: 1.2 },
+      { time: 'Evening (4–7 PM)', factor: 0.9 },
+      { time: 'Night (7–9 PM)', factor: 0.75 },
+    ];
+
+    for (const window of timeWindows) {
+      const estimatedAqi = Math.round(currentAqi * window.factor);
+      const cat = estimatedAqi <= 50 ? 'Good' : estimatedAqi <= 100 ? 'Moderate' : estimatedAqi <= 150 ? 'Unhealthy for Sensitive Groups' : 'Unhealthy';
+      let recommendation = '';
+      if (estimatedAqi <= 50) recommendation = 'Excellent air quality – great for all outdoor activities.';
+      else if (estimatedAqi <= 100) recommendation = 'Acceptable air quality – suitable for most people.';
+      else if (estimatedAqi <= 150) recommendation = 'Sensitive groups should limit prolonged outdoor exertion.';
+      else recommendation = 'Unhealthy – avoid outdoor activities if possible.';
+
+      bestTimeSlots.push({ time: window.time, aqi: estimatedAqi, aqiCategory: cat, recommendation });
+    }
+
+    // Sort by best (lowest) AQI first
+    bestTimeSlots.sort((a, b) => a.aqi - b.aqi);
+
     console.log('Returning recommendations:', activities.length);
 
     return new Response(
@@ -493,7 +523,8 @@ Format your response as a JSON array with objects containing "title", "descripti
         hourlyForecasts: hourlyForecasts || [],
         alerts,
         healthNotifications,
-        optimalWindows
+        optimalWindows,
+        bestTimeSlots
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
