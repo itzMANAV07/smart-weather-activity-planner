@@ -46,21 +46,23 @@ serve(async (req) => {
     const { location } = await req.json();
     if (!location) throw new Error("Location is required");
 
-    const OPENWEATHER_API_KEY = Deno.env.get("OPENWEATHER_API_KEY");
+    const OPENWEATHER_API_KEY = Deno.env.get("OPENWEATHER_API_KEY") || "8ae4500adfa5be07e29890719e216cc0";
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
     if (!OPENWEATHER_API_KEY) throw new Error("OPENWEATHER_API_KEY is not configured");
 
     // Geocode
-    console.log("Using API key:", OPENWEATHER_API_KEY?.substring(0, 6) + "...");
-    const geoRes = await fetch(
-      `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(location)}&limit=1&appid=${OPENWEATHER_API_KEY}`
-    );
+    console.log("Fetching geocode for:", location, "with key prefix:", OPENWEATHER_API_KEY.substring(0, 6));
+    const geoUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(location)}&limit=1&appid=${OPENWEATHER_API_KEY}`;
+    console.log("Geo URL:", geoUrl.replace(OPENWEATHER_API_KEY, "***"));
+    const geoRes = await fetch(geoUrl);
+    console.log("Geo status:", geoRes.status);
     const geoText = await geoRes.text();
-    console.log("Geo response status:", geoRes.status, "body:", geoText);
-    const geoData = JSON.parse(geoText);
-    if (!geoData || geoData.length === 0) throw new Error("Location not found: " + geoText);
+    console.log("Geo body:", geoText.substring(0, 200));
+    let geoData;
+    try { geoData = JSON.parse(geoText); } catch(e) { throw new Error("Invalid geo response: " + geoText.substring(0, 100)); }
+    if (!geoData || geoData.length === 0) throw new Error("Location not found");
     const { lat, lon } = geoData[0];
 
     // Fetch weather, forecast, AQI in parallel
