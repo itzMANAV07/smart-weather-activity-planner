@@ -2,7 +2,7 @@
 
 A web app that recommends personalized outdoor activities based on real-time weather conditions at your location.
 
-🔗 **Live Demo:** [main.dtclr48x2m2s2.amplifyapp.com](https://main.dtclr48x2m2s2.amplifyapp.com/)
+🔗 **Live Demo:** https://main.d3e49ap3hvje2e.amplifyapp.com/
 
 ---
 
